@@ -15,10 +15,9 @@
    i18nSolfege, NUMBERBLOCKDEFAULT, TEXTWIDTH, STRINGLEN,
    DEFAULTBLOCKSCALE, SVG, DISABLEDFILLCOLOR, DISABLEDSTROKECOLOR,
    PALETTEFILLCOLORS, PALETTESTROKECOLORS, last, getTextWidth,
-   STANDARDBLOCKHEIGHT, CLOSEICON, BUILTINPALETTES,
-   safeSVG, blockIsMacro, getMacroExpansion,
-   base64Encode, StatusMatrix, activity
-   cameraPALETTE, mediaPALETTE, videoPALETTE
+   STANDARDBLOCKHEIGHT, CLOSEICON, BUILTINPALETTES, base64Encode,
+   safeSVG, blockIsMacro, getMacroExpansion, StatusMatrix,
+   activity, cameraPALETTE, mediaPALETTE, videoPALETTE
 */
 
 /* exported Palettes, initPalettes */
@@ -2003,7 +2002,7 @@ class Palette {
                 // Add variables first
                 for (let i = 0; i < foundVariables.length; i++) {
                     const [blockId, blockType] = foundVariables[i];
-                    const block = activity.blocks.blockList[blockId];
+                    const block = this.activity.blocks.blockList[blockId];
                     const isLastVar = i === foundVariables.length - 1;
                     const hasBoxes = boxBlocks.length > 0;
 
@@ -2034,7 +2033,7 @@ class Palette {
                 // Then add box blocks
                 for (let i = 0; i < boxBlocks.length; i++) {
                     const boxBlockId = boxBlocks[i];
-                    const boxBlock = activity.blocks.blockList[boxBlockId];
+                    const boxBlock = this.activity.blocks.blockList[boxBlockId];
 
                     statusBlocks.push([
                         lastBlockIndex + 1,
