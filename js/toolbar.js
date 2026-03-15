@@ -411,7 +411,6 @@ class Toolbar {
             if (!isPlayIconRunning) {
                 playIcon.onclick = null;
             } else {
-                // eslint-disable-next-line no-use-before-define
                 playIcon.onclick = tempClick;
                 isPlayIconRunning = false;
             }
@@ -2121,14 +2120,18 @@ class FocusCycleManager {
             ) {
                 return ActivityContext.getActivity();
             }
-        } catch (_) {}
+        } catch {
+            // ActivityContext is optional in older embeds and tests.
+        }
 
         try {
             const context = globalThis?.ActivityContext;
             if (context && typeof context.getActivity === "function") {
                 return context.getActivity();
             }
-        } catch (_) {}
+        } catch {
+            // Global activity context may not exist.
+        }
 
         return null;
     }
@@ -2246,7 +2249,9 @@ class FocusCycleManager {
             if (clickedWorkspace && activity?.blocks) {
                 activity.blocks.activeBlock = null;
             }
-        } catch (_) {}
+        } catch {
+            // Mouse handoff should not fail if palette state is unavailable.
+        }
 
         if (clickedWorkspace) {
             this._focusWorkspaceFromMouse();
@@ -2370,7 +2375,9 @@ class FocusCycleManager {
                 } else if (p) {
                     p._keyboardNavActive = false;
                 }
-            } catch (_) {}
+            } catch {
+                // Leaving the palette should still continue if cleanup is unavailable.
+            }
         }
     }
 
@@ -2446,7 +2453,9 @@ class FocusCycleManager {
                         p._navBlockIndex = rows.length > 1 ? 1 : 0;
                     }
                 }
-            } catch (_) {}
+            } catch {
+                // Palette keyboard state sync is best-effort.
+            }
             this._announce("Palette active");
         }
     }
