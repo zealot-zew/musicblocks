@@ -141,6 +141,11 @@ class ThemeBox {
             }
         });
 
+        // Sync platformColor with the active theme config on startup
+        if (themeConfigs[this._theme] && window.platformColor) {
+            Object.assign(window.platformColor, themeConfigs[this._theme]);
+        }
+
         // Update theme icon immediately if DOM is ready
         this.updateThemeIcon();
 
@@ -255,7 +260,10 @@ class ThemeBox {
         const planetIframe = document.getElementById("planet-iframe");
         if (planetIframe) {
             const applyPlanetTheme = () => {
-                if (planetIframe.contentDocument) {
+                if (
+                    planetIframe.contentDocument &&
+                    planetIframe.contentDocument.readyState === "complete"
+                ) {
                     try {
                         const planetBody = planetIframe.contentDocument.body;
                         if (planetBody) {
