@@ -102,6 +102,9 @@ class Palettes {
         this._navPaletteBlockIndex = 0; // For navigating actual blocks in the right panel
         this._keyboardNavActive = false;
         this._menuOpenTimeout = null;
+        // Tracks whether the palette was collapsed before Tab focus entered,
+        // so we can restore its state when focus leaves.
+        this._wasCollapsedBeforeFocus = false;
     }
 
     init() {
@@ -248,6 +251,28 @@ class Palettes {
             } else if (key === "Enter") {
                 this._activateCurrentNavItem(blockRows);
             }
+        });
+
+        // Auto-expand the palette when it receives Tab focus (if it was collapsed),
+        // and restore the previous state when focus leaves.
+        palette.addEventListener("focus", () => {
+            // Record the state at the moment Tab focus enters.
+            this._wasCollapsedBeforeFocus = this.collapsed;
+            // If the palette is collapsed, open it so the user can see it.
+            if (this.collapsed) {
+                this.toggleCollapse();
+            }
+        });
+
+        palette.addEventListener("focusout", event => {
+            // relatedTarget is where focus is moving to.
+            // If it's still inside the palette, do nothing.
+            if (palette.contains(event.relatedTarget)) return;
+            // Restore the palette to the state it was in before Tab focus entered.
+            if (this._wasCollapsedBeforeFocus) {
+                this.toggleCollapse();
+            }
+            this._wasCollapsedBeforeFocus = false;
         });
 
         // Clear keyboard nav highlight on mouse movement and restore mouse hover
