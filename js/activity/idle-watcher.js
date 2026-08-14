@@ -141,13 +141,27 @@ const setupActivityIdleWatcher = activityInstance => {
                         return;
                     }
 
+                    // Fix #7: Use saveSessionAsync (IndexedDB) when available;
+                    // fall back to saveLocally. In both cases, call
+                    // gitDropdownUI.onSaveLocally() so mbGitLastSavedHash is
+                    // updated and the "Mark This Moment" button stays accurate.
                     if (typeof activity.saveSessionAsync === "function") {
-                        activity.saveSessionAsync();
+                        activity.saveSessionAsync().catch(e => {
+                            ErrorHandler.recoverable(e, { operation: "autoSaveAsync" });
+                        });
                     } else if (
                         activity.saveLocally !== null &&
                         activity.saveLocally !== undefined
                     ) {
                         activity.saveLocally();
+                    }
+
+                    // Always update the git dirty-check hash after any autosave
+                    if (
+                        activity.gitDropdownUI &&
+                        typeof activity.gitDropdownUI.onSaveLocally === "function"
+                    ) {
+                        activity.gitDropdownUI.onSaveLocally();
                     }
                 } catch (e) {
                     ErrorHandler.recoverable(e, { operation: "autoSave" });

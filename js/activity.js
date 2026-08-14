@@ -2485,6 +2485,19 @@ class Activity {
                         this.storage.removeItem("SESSION" + p);
                         this.storage.removeItem("SESSION_TIMESTAMP" + p);
                     }
+                    // Fix #2 & #5: Wipe all git tracking keys so a hard refresh
+                    // always starts with a clean slate — no stale repo attached
+                    // to the empty canvas, no wrong "YOU ARE HERE" badge, and no
+                    // offline drafts routed to the wrong project slot.
+                    // Note: mb_git_key_<repo> (fallback archive) is intentionally
+                    // kept — it is not session state.
+                    this.storage.removeItem("mbGitRepoName");
+                    this.storage.removeItem("mbGitHashedKey");
+                    this.storage.removeItem("mbGitLastSavedHash");
+                    this.storage.removeItem("mbGitCurrentSha");
+                    this.storage.removeItem("mbGitCurrentDraftId");
+                    this.storage.removeItem("mbGitCurrentProjectId");
+                    this.storage.removeItem("mbGitDisplayName");
                     window.location.reload(true);
                 };
 
@@ -4144,6 +4157,37 @@ class Activity {
                     }
                 } else if (lsData) {
                     that.sessionData = lsData;
+                }
+
+                // Fix #1 & #4: After any kind of session restore (IndexedDB or
+                // localStorage), re-populate the Git localStorage keys from
+                // Planet's ProjectStorage. If the browser crashed, these keys
+                // may have been wiped. This ensures the Git toolbar is correct
+                // and offline drafts are routed to the right project slot.
+                // The MB_GIT_STATE postMessage will also repopulate these on
+                // Planet open, but this hook fires earlier (avoids toolbar flash).
+                try {
+                    if (
+                        that.planet &&
+                        that.planet.ProjectStorage &&
+                        typeof that.planet.ProjectStorage.getCurrentProjectID === "function"
+                    ) {
+                        const projectId = that.planet.ProjectStorage.getCurrentProjectID();
+                        const projectSlot =
+                            projectId !== undefined &&
+                            that.planet.ProjectStorage.data.Projects[projectId];
+                        const gitData = projectSlot ? projectSlot.GitRepoData : null;
+                        if (gitData && gitData.repoName) {
+                            that.storage.setItem("mbGitRepoName", gitData.repoName);
+                            that.storage.setItem("mbGitHashedKey", gitData.hashedKey || "");
+                            if (projectId) {
+                                that.storage.setItem("mbGitCurrentProjectId", projectId);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Best-effort: if ProjectStorage isn't ready yet, skip silently.
+                    // The MB_GIT_STATE postMessage from Planet will restore keys anyway.
                 }
             }
 
